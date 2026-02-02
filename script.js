@@ -22,70 +22,65 @@ envelope.addEventListener("click", () => {
 
 // Logic to move the NO btn
 
+let isNoBtnMoved = false;
+
 function moveNoButton(e) {
     // Prevent default touch behavior on mobile
     if (e.type === 'touchstart' || e.type === 'touchmove') {
         e.preventDefault();
+        e.stopPropagation();
     }
     
-    const btnRect = noBtn.getBoundingClientRect();
-    const btnWidth = btnRect.width;
-    const btnHeight = btnRect.height;
+    const btnWidth = noBtn.offsetWidth || 120;
+    const btnHeight = noBtn.offsetHeight || 50;
     
-    // Get viewport dimensions with safe margins
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const margin = 20;
+    // Get safe viewport dimensions (account for iOS Safari bottom bar)
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const margin = 30;
     
-    // Calculate safe bounds for the button center
-    const minX = margin + btnWidth / 2;
-    const maxX = viewportWidth - margin - btnWidth / 2;
-    const minY = margin + btnHeight / 2;
-    const maxY = viewportHeight - margin - btnHeight / 2;
+    // On first move, switch to fixed positioning
+    if (!isNoBtnMoved) {
+        noBtn.style.position = 'fixed';
+        noBtn.style.zIndex = '9999';
+        isNoBtnMoved = true;
+    }
+    
+    // Calculate safe bounds
+    const minX = margin;
+    const maxX = viewportWidth - btnWidth - margin;
+    const minY = margin;
+    const maxY = viewportHeight - btnHeight - margin;
     
     // Generate random position within safe bounds
-    const newCenterX = Math.random() * (maxX - minX) + minX;
-    const newCenterY = Math.random() * (maxY - minY) + minY;
+    let newX = Math.floor(Math.random() * (maxX - minX)) + minX;
+    let newY = Math.floor(Math.random() * (maxY - minY)) + minY;
     
-    // Calculate current button center
-    const currentCenterX = btnRect.left + btnWidth / 2;
-    const currentCenterY = btnRect.top + btnHeight / 2;
+    // Ensure values are within bounds
+    newX = Math.max(minX, Math.min(newX, maxX));
+    newY = Math.max(minY, Math.min(newY, maxY));
     
-    // Calculate translation needed
-    let moveX = newCenterX - currentCenterX;
-    let moveY = newCenterY - currentCenterY;
-    
-    // Get current transform values
-    const currentTransform = noBtn.style.transform;
-    let currentMoveX = 0;
-    let currentMoveY = 0;
-    
-    if (currentTransform) {
-        const match = currentTransform.match(/translate\(([\d.-]+)px,\s*([\d.-]+)px\)/);
-        if (match) {
-            currentMoveX = parseFloat(match[1]);
-            currentMoveY = parseFloat(match[2]);
-        }
-    }
-    
-    // Add to existing translation
-    const totalMoveX = currentMoveX + moveX;
-    const totalMoveY = currentMoveY + moveY;
-    
-    noBtn.style.transition = "transform 0.2s ease";
-    noBtn.style.transform = `translate(${totalMoveX}px, ${totalMoveY}px)`;
+    // Apply position directly (no transform)
+    noBtn.style.transition = "left 0.2s ease, top 0.2s ease";
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+    noBtn.style.transform = 'none';
 }
 
 // Desktop: mouseover
 noBtn.addEventListener("mouseover", moveNoButton);
 
-// Mobile: touchstart and touchmove
-noBtn.addEventListener("touchstart", moveNoButton, { passive: false });
-noBtn.addEventListener("touchmove", moveNoButton, { passive: false });
+// Mobile: touchstart only (not touchmove to avoid rapid firing)
+noBtn.addEventListener("touchstart", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    moveNoButton(e);
+}, { passive: false });
 
 // Prevent click on No button
 noBtn.addEventListener("click", (e) => {
     e.preventDefault();
+    e.stopPropagation();
     moveNoButton(e);
 });
 
