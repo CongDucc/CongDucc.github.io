@@ -22,18 +22,71 @@ envelope.addEventListener("click", () => {
 
 // Logic to move the NO btn
 
-noBtn.addEventListener("mouseover", () => {
-    const min = 200;
-    const max = 200;
+function moveNoButton(e) {
+    // Prevent default touch behavior on mobile
+    if (e.type === 'touchstart' || e.type === 'touchmove') {
+        e.preventDefault();
+    }
+    
+    const btnRect = noBtn.getBoundingClientRect();
+    const btnWidth = btnRect.width;
+    const btnHeight = btnRect.height;
+    
+    // Get viewport dimensions with safe margins
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 20;
+    
+    // Calculate safe bounds for the button center
+    const minX = margin + btnWidth / 2;
+    const maxX = viewportWidth - margin - btnWidth / 2;
+    const minY = margin + btnHeight / 2;
+    const maxY = viewportHeight - margin - btnHeight / 2;
+    
+    // Generate random position within safe bounds
+    const newCenterX = Math.random() * (maxX - minX) + minX;
+    const newCenterY = Math.random() * (maxY - minY) + minY;
+    
+    // Calculate current button center
+    const currentCenterX = btnRect.left + btnWidth / 2;
+    const currentCenterY = btnRect.top + btnHeight / 2;
+    
+    // Calculate translation needed
+    let moveX = newCenterX - currentCenterX;
+    let moveY = newCenterY - currentCenterY;
+    
+    // Get current transform values
+    const currentTransform = noBtn.style.transform;
+    let currentMoveX = 0;
+    let currentMoveY = 0;
+    
+    if (currentTransform) {
+        const match = currentTransform.match(/translate\(([\d.-]+)px,\s*([\d.-]+)px\)/);
+        if (match) {
+            currentMoveX = parseFloat(match[1]);
+            currentMoveY = parseFloat(match[2]);
+        }
+    }
+    
+    // Add to existing translation
+    const totalMoveX = currentMoveX + moveX;
+    const totalMoveY = currentMoveY + moveY;
+    
+    noBtn.style.transition = "transform 0.2s ease";
+    noBtn.style.transform = `translate(${totalMoveX}px, ${totalMoveY}px)`;
+}
 
-    const distance = Math.random() * (max - min) + min;
-    const angle = Math.random() * Math.PI * 2;
+// Desktop: mouseover
+noBtn.addEventListener("mouseover", moveNoButton);
 
-    const moveX = Math.cos(angle) * distance;
-    const moveY = Math.sin(angle) * distance;
+// Mobile: touchstart and touchmove
+noBtn.addEventListener("touchstart", moveNoButton, { passive: false });
+noBtn.addEventListener("touchmove", moveNoButton, { passive: false });
 
-    noBtn.style.transition = "transform 0.3s ease";
-    noBtn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+// Prevent click on No button
+noBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    moveNoButton(e);
 });
 
 // Logic to make YES btn to grow

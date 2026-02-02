@@ -124,8 +124,12 @@ display: inline-block;
 .no-btn {
     z-index: 1;
     position: relative;
-    transition: transform 0.15s ease;
-    cursor: default;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
 }
 
 .final-text{
